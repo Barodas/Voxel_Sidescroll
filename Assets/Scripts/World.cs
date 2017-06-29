@@ -52,6 +52,11 @@ public class World : MonoBehaviour
         {
             chunk.SetBlock(x - chunk.pos.x, y - chunk.pos.y, z, block);
             chunk.update = true;
+
+            UpdateIfEqual(x - chunk.pos.x, 0, new WorldPos(x - 1, y));
+            UpdateIfEqual(x - chunk.pos.x, Chunk.chunkSize - 1, new WorldPos(x + 1, y));
+            UpdateIfEqual(y - chunk.pos.y, 0, new WorldPos(x, y - 1));
+            UpdateIfEqual(y - chunk.pos.y, Chunk.chunkSize - 1, new WorldPos(x, y + 1));
         }
     }
 
@@ -99,6 +104,16 @@ public class World : MonoBehaviour
         {
             Object.Destroy(chunk.gameObject);
             chunks.Remove(new WorldPos(x, y));
+        }
+    }
+
+    void UpdateIfEqual(int value1, int value2, WorldPos pos)
+    {
+        if (value1 == value2)
+        {
+            Chunk chunk = GetChunk(pos.x, pos.y);
+            if (chunk != null)
+                chunk.update = true;
         }
     }
 }
