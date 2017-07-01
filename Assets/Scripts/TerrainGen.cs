@@ -42,8 +42,12 @@ public static class TerrainGen
 
         WorldPos pos = GetBlockPos(hit, adjacent);
 
-        chunk.world.SetBlock(pos.x, pos.y, 0, block);
+        if(PlayerController.Instance.OccupiedBlocks().Contains(pos))
+        {
+            return false;
+        }
 
+        chunk.world.SetBlock(pos.x, pos.y, 0, block);
         return true;
     }
 

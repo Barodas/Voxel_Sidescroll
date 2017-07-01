@@ -1,21 +1,37 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public class PlayerController : MonoBehaviour
 {
+    public static PlayerController Instance;
     private Rigidbody _rb;
-    public float JumpStrength = 1.0f;
-    public float MoveSpeed = 1.0f;
+    private bool _isJumping;
+    private bool _isGrounded;
+    private float _fallingAcceleration;
+    private float _jumpTimer;
+    private Vector3 _playerRayOrigin;
+
+    public float MoveSpeed = 0.1f;
+    public float JumpTime = 0.11f;
+    public float JumpSpeed = 0.2f;
+    public float FallSpeed = 0.1f;
+    public float MaxFallSpeed = 0.4f;
+    public float _fallingAccelerationRate = 0.01f;
 
     private void Start()
     {
+        Instance = this;
         _rb = GetComponent<Rigidbody>();
     }
 
-    void Update()
+    private void Update()
     {
+        // Block Interaction
         Plane playerPlane = new Plane(Vector3.back, transform.position);
+        _playerRayOrigin = new Vector3(transform.position.x, transform.position.y + 0.4f, transform.position.z);
         Ray mouseRay = Camera.main.ScreenPointToRay(Input.mousePosition);
+        RaycastHit hit;
 
         float d;
         if(playerPlane.Raycast(mouseRay, out d))
@@ -24,20 +40,75 @@ public class PlayerController : MonoBehaviour
 
             if (Input.GetMouseButtonDown(0))
             {
-                RaycastHit hit;
-                if (Physics.Raycast(transform.position, (hitPoint - transform.position).normalized, out hit, 100))
+                if (Physics.Raycast(_playerRayOrigin, (hitPoint - _playerRayOrigin).normalized, out hit, 100))
                 {
                     TerrainGen.SetBlock(hit, new BlockAir());
                 }
             }
-            Debug.DrawRay(transform.position, (hitPoint - transform.position).normalized, Color.red);
+
+            if(Input.GetMouseButtonDown(1))
+            {
+                if (Physics.Raycast(_playerRayOrigin, (hitPoint - _playerRayOrigin).normalized, out hit, 100))
+                {
+                    TerrainGen.SetBlock(hit, new Block(), true);
+                }
+            }
+            Debug.DrawRay(_playerRayOrigin, (hitPoint - _playerRayOrigin).normalized, Color.red);
         }
 
         Debug.DrawRay(Camera.main.transform.position, mouseRay.direction, Color.yellow);
 
-        if (Input.GetKeyDown(KeyCode.Space))
+        // Movement
+        // Jump
+        if (Input.GetKey(KeyCode.Space))
         {
-            _rb.AddForce(Vector3.up * JumpStrength, ForceMode.Impulse);
+            //_rb.AddForce(Vector3.up * JumpStrength, ForceMode.Impulse);
+            if(_isGrounded)
+            {
+                _isGrounded = false;
+                _isJumping = true;
+                _jumpTimer = JumpTime;
+            }
+        }
+
+        if(_isJumping)
+        {
+            if(_jumpTimer < 0)
+            {
+                // Stop Upward Movement
+                _isJumping = false;
+            }
+            else
+            {
+                // Upward Movement
+                Vector3 jumpDirection = Vector3.up * JumpSpeed;
+                if (!_rb.SweepTest(jumpDirection, out hit, jumpDirection.magnitude))
+                {
+                    transform.Translate(jumpDirection);
+                }
+                _jumpTimer -= Time.deltaTime;
+            }
+        }
+        else
+        {
+            // Falling Movement
+            Vector3 fallDirection = Vector3.down * _fallingAcceleration;
+            if (!_rb.SweepTest(fallDirection, out hit, fallDirection.magnitude))
+            {
+                transform.Translate(fallDirection);
+                _fallingAcceleration = Mathf.Min(_fallingAcceleration + _fallingAccelerationRate, MaxFallSpeed);
+            }
+            else
+            {
+                _isGrounded = true;
+                _fallingAcceleration = FallSpeed;
+            }
+        }
+
+        Vector3 moveDirection = new Vector3(Input.GetAxisRaw("Horizontal") * MoveSpeed, 0, 0);
+        if(!_rb.SweepTest(moveDirection, out hit, moveDirection.magnitude))
+        {
+            transform.Translate(moveDirection);
         }
 
 
@@ -48,6 +119,15 @@ public class PlayerController : MonoBehaviour
 
         //transform.position += transform.forward * 3 * Input.GetAxis("Vertical");
         //transform.position += transform.right * Input.GetAxis("Horizontal");
-        _rb.AddForce((transform.right * MoveSpeed) * Input.GetAxis("Horizontal"));
+
+        //_rb.AddForce((transform.right * MoveSpeed) * Input.GetAxis("Horizontal"));
+    }
+
+    public List<WorldPos> OccupiedBlocks()
+    {
+        List<WorldPos> pos = new List<WorldPos>();
+        pos.Add(TerrainGen.GetBlockPos(_playerRayOrigin));
+        pos.Add(new WorldPos(pos[0].x, pos[0].y - 1));
+        return pos;
     }
 }
