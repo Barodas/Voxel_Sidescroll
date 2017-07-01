@@ -1,9 +1,16 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class Modify : MonoBehaviour
+public class PlayerController : MonoBehaviour
 {
-    Vector2 rot;
+    private Rigidbody _rb;
+    public float JumpStrength = 1.0f;
+    public float MoveSpeed = 1.0f;
+
+    private void Start()
+    {
+        _rb = GetComponent<Rigidbody>();
+    }
 
     void Update()
     {
@@ -15,7 +22,7 @@ public class Modify : MonoBehaviour
         {
             Vector3 hitPoint = mouseRay.GetPoint(d);
 
-            if (Input.GetKeyDown(KeyCode.Space))
+            if (Input.GetMouseButtonDown(0))
             {
                 RaycastHit hit;
                 if (Physics.Raycast(transform.position, (hitPoint - transform.position).normalized, out hit, 100))
@@ -27,7 +34,12 @@ public class Modify : MonoBehaviour
         }
 
         Debug.DrawRay(Camera.main.transform.position, mouseRay.direction, Color.yellow);
-        
+
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            _rb.AddForce(Vector3.up * JumpStrength, ForceMode.Impulse);
+        }
+
 
         //rot = new Vector2(rot.x + Input.GetAxis("Mouse X") * 3, rot.y + Input.GetAxis("Mouse Y") * 3);
         //
@@ -35,6 +47,7 @@ public class Modify : MonoBehaviour
         //transform.localRotation *= Quaternion.AngleAxis(rot.y, Vector3.left);
 
         //transform.position += transform.forward * 3 * Input.GetAxis("Vertical");
-        transform.position += transform.right * Input.GetAxis("Horizontal");
+        //transform.position += transform.right * Input.GetAxis("Horizontal");
+        _rb.AddForce((transform.right * MoveSpeed) * Input.GetAxis("Horizontal"));
     }
 }
