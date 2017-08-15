@@ -57,13 +57,16 @@ public class PlayerController : MonoBehaviour
         }
 
         Debug.DrawRay(Camera.main.transform.position, mouseRay.direction, Color.yellow);
+    }
 
+    private void FixedUpdate()
+    {
         // Movement
         // Jump
         if (Input.GetKey(KeyCode.Space))
         {
             //_rb.AddForce(Vector3.up * JumpStrength, ForceMode.Impulse);
-            if(_isGrounded)
+            if (_isGrounded)
             {
                 _isGrounded = false;
                 _isJumping = true;
@@ -71,9 +74,10 @@ public class PlayerController : MonoBehaviour
             }
         }
 
-        if(_isJumping)
+        RaycastHit hit;
+        if (_isJumping)
         {
-            if(_jumpTimer < 0)
+            if (_jumpTimer < 0)
             {
                 // Stop Upward Movement
                 _isJumping = false;
@@ -106,7 +110,7 @@ public class PlayerController : MonoBehaviour
         }
 
         Vector3 moveDirection = new Vector3(Input.GetAxisRaw("Horizontal") * MoveSpeed, 0, 0);
-        if(!_rb.SweepTest(moveDirection, out hit, moveDirection.magnitude))
+        if (!_rb.SweepTest(moveDirection, out hit, moveDirection.magnitude))
         {
             transform.Translate(moveDirection);
         }

@@ -8,8 +8,8 @@ public class Chunk : MonoBehaviour
 {
     private MeshFilter _filter;
     private MeshCollider _col;
-    private Block[,,] _blocks = new Block[chunkSize, chunkSize, chunkDepth]; // X, Y, Foreground/Background
 
+    public Block[,,] blocks = new Block[chunkSize, chunkSize, chunkDepth]; // X, Y, Foreground/Background
     public World world;
     public WorldPos pos;
     public static int chunkSize = 16; // X, Y
@@ -51,7 +51,7 @@ public class Chunk : MonoBehaviour
     public Block GetBlock(int x, int y, int z)
     {
         if (InRange(x) && InRange(y) && InRange(z))
-            return _blocks[x, y, z];
+            return blocks[x, y, z];
         return world.GetBlock(pos.x + x, pos.y + y, z);
     }
 
@@ -59,7 +59,7 @@ public class Chunk : MonoBehaviour
     {
         if (InRange(x) && InRange(y) && InRange(z))
         {
-            _blocks[x, y, z] = block;
+            blocks[x, y, z] = block;
         }
         else
         {
@@ -84,7 +84,7 @@ public class Chunk : MonoBehaviour
             {
                 for (int z = 0; z < chunkDepth; z++)
                 {
-                    meshData = _blocks[x, y, z].Blockdata(this, x, y, z, meshData);
+                    meshData = blocks[x, y, z].Blockdata(this, x, y, z, meshData);
                 }
             }
         }

@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System;
 
 public enum Direction
 {
@@ -17,6 +18,7 @@ public struct Tile
     public int y;
 }
 
+[Serializable]
 public class Block
 {
     const float tileSize = 0.25f;

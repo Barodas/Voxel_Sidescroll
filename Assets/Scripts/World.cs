@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class World : MonoBehaviour
 {
+    public string worldName = "world";
+
     public Dictionary<WorldPos, Chunk> chunks = new Dictionary<WorldPos, Chunk>();
     public GameObject chunkPrefab;
 
@@ -78,7 +80,10 @@ public class World : MonoBehaviour
         //Add it to the chunks dictionary with the position as the key
         chunks.Add(worldPos, newChunk);
 
-        //Add the following:
+        bool loaded = Serialization.Load(newChunk);
+        if (loaded)
+            return;
+
         for (int xi = 0; xi < 16; xi++)
         {
             for (int yi = 0; yi < 16; yi++)
@@ -114,6 +119,17 @@ public class World : MonoBehaviour
             Chunk chunk = GetChunk(pos.x, pos.y);
             if (chunk != null)
                 chunk.update = true;
+        }
+    }
+
+    public void DestroyChunk(int x, int y, int z)
+    {
+        Chunk chunk = null;
+        if (chunks.TryGetValue(new WorldPos(x, y), out chunk))
+        {
+            Serialization.SaveChunk(chunk);    //Add this line to the function
+            UnityEngine.Object.Destroy(chunk.gameObject);
+            chunks.Remove(new WorldPos(x, y));
         }
     }
 }
