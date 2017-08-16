@@ -3,11 +3,11 @@ using System.Collections;
 
 [RequireComponent(typeof(MeshFilter))]
 [RequireComponent(typeof(MeshRenderer))]
-[RequireComponent(typeof(MeshCollider))]
+[RequireComponent(typeof(PolygonCollider2D))]
 public class Chunk : MonoBehaviour
 {
     private MeshFilter _filter;
-    private MeshCollider _col;
+    private PolygonCollider2D _col;
 
     public Block[,,] blocks = new Block[chunkSize, chunkSize, chunkDepth]; // X, Y, Foreground/Background
     public World world;
@@ -19,7 +19,7 @@ public class Chunk : MonoBehaviour
     private void Start()
     {
         _filter = gameObject.GetComponent<MeshFilter>();
-        _col = gameObject.GetComponent<MeshCollider>();
+        _col = gameObject.GetComponent<PolygonCollider2D>();
 
         // Example Chunk Generation
         //_blocks = new Block[chunkSize, chunkSize, chunkDepth];
@@ -99,12 +99,6 @@ public class Chunk : MonoBehaviour
         _filter.mesh.uv = meshData.uv.ToArray();
         _filter.mesh.RecalculateNormals();
 
-        _col.sharedMesh = null;
-        Mesh mesh = new Mesh();
-        mesh.vertices = meshData.colVertices.ToArray();
-        mesh.triangles = meshData.colTriangles.ToArray();
-        mesh.RecalculateNormals();
-
-        _col.sharedMesh = mesh;
+        _col.points = meshData.colVertices.ToArray();
     }
 }
