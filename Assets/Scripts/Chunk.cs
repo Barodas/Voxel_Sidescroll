@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 [RequireComponent(typeof(MeshFilter))]
 [RequireComponent(typeof(MeshRenderer))]
@@ -99,6 +100,119 @@ public class Chunk : MonoBehaviour
         _filter.mesh.uv = meshData.uv.ToArray();
         _filter.mesh.RecalculateNormals();
 
-        _col.points = meshData.colVertices.ToArray();
+        // For each point that has a matching point in a sublist, we add that sublists other point to this list and check again.
+        //List<List<Vector2>> consolidatedColliders = new List<List<Vector2>>();
+        //consolidatedColliders.Add(meshData.colVertices[0]);
+        //meshData.colVertices.RemoveAt(0);
+        //int currentList = 0;
+
+        //while (meshData.colVertices.Count > 0)
+        //{
+        //    for(int i = 0; i < meshData.colVertices.Count; i++)
+        //    {
+        //        if(meshData.colVertices[i][0] == consolidatedColliders[currentList][consolidatedColliders[currentList].Count - 1])
+        //        {
+        //            consolidatedColliders[currentList].Add(meshData.colVertices[i][1]);
+        //            meshData.colVertices.RemoveAt(i);
+        //            break;
+        //        }
+        //    }
+        //    currentList++;
+        //    consolidatedColliders.Add(meshData.colVertices[0]);
+        //    meshData.colVertices.RemoveAt(0);
+        //}
+
+        //_col.pathCount = consolidatedColliders.Count;
+        //for(int i = 0; i < consolidatedColliders.Count; i++)
+        //{
+        //    _col.SetPath(i, consolidatedColliders[i].ToArray());
+        //}
+
+        Build2dCollider(meshData);
+    }
+
+    private void Build2dCollider(MeshData meshData)
+    {
+        // Get triangles and vertices from mesh
+        int[] triangles = meshData.tris2d.ToArray();
+        Vector2[] vertices = meshData.verts2d.ToArray();
+
+        // Get just the outer edges from the mesh's triangles (ignore or remove any shared edges)
+        Dictionary<string, KeyValuePair<int, int>> edges = new Dictionary<string, KeyValuePair<int, int>>();
+        for (int i = 0; i < triangles.Length; i += 3)
+        {
+            for (int e = 0; e < 3; e++)
+            {
+                int vert1 = triangles[i + e];
+                int vert2 = triangles[i + e + 1 > i + 2 ? i : i + e + 1];
+                string edge = Mathf.Min(vert1, vert2) + ":" + Mathf.Max(vert1, vert2);
+                if (edges.ContainsKey(edge))
+                {
+                    edges.Remove(edge);
+                }
+                else
+                {
+                    edges.Add(edge, new KeyValuePair<int, int>(vert1, vert2));
+                }
+            }
+        }
+
+        // Create edge lookup (Key is first vertex, Value is second vertex, of each edge)
+        Dictionary<int, int> lookup = new Dictionary<int, int>();
+        foreach (KeyValuePair<int, int> edge in edges.Values)
+        {
+            if (lookup.ContainsKey(edge.Key) == false)
+            {
+                lookup.Add(edge.Key, edge.Value);
+            }
+        }
+
+        _col.pathCount = 0;
+
+        // Loop through edge vertices in order
+        int startVert = 0;
+        int nextVert = startVert;
+        int highestVert = startVert;
+        List<Vector2> colliderPath = new List<Vector2>();
+        while (true)
+        {
+
+            // Add vertex to collider path
+            colliderPath.Add(vertices[nextVert]);
+
+            // Get next vertex
+            nextVert = lookup[nextVert];
+
+            // Store highest vertex (to know what shape to move to next)
+            if (nextVert > highestVert)
+            {
+                highestVert = nextVert;
+            }
+
+            // Shape complete
+            if (nextVert == startVert)
+            {
+
+                // Add path to polygon collider
+                _col.pathCount++;
+                _col.SetPath(_col.pathCount - 1, colliderPath.ToArray());
+                colliderPath.Clear();
+
+                // Go to next shape if one exists
+                if (lookup.ContainsKey(highestVert + 1))
+                {
+
+                    // Set starting and next vertices
+                    startVert = highestVert + 1;
+                    nextVert = startVert;
+
+                    // Continue to next loop
+                    continue;
+                }
+
+                // No more verts
+                break;
+            }
+        }
     }
 }

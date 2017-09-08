@@ -12,6 +12,7 @@ public class PlayerController : MonoBehaviour
     private float _jumpTimer;
     private Vector3 _playerRayOrigin;
 
+    public LayerMask RaycastMask;
     public float MoveSpeed = 0.1f;
     public float JumpTime = 0.11f;
     public float JumpSpeed = 0.2f;
@@ -40,7 +41,8 @@ public class PlayerController : MonoBehaviour
 
             if (Input.GetMouseButtonDown(0))
             {
-                hit = Physics2D.Raycast(_playerRayOrigin, (hitPoint - _playerRayOrigin).normalized, 100, LayerMask.NameToLayer("Platforms"));
+                hit = Physics2D.Raycast(_playerRayOrigin, (hitPoint - _playerRayOrigin).normalized, 100, RaycastMask);
+                Debug.Log(hit.collider.name);
                 if (hit.collider != null)
                 {
                     TerrainGen.SetBlock(hit, new BlockAir());
@@ -49,7 +51,7 @@ public class PlayerController : MonoBehaviour
 
             if(Input.GetMouseButtonDown(1))
             {
-                hit = Physics2D.Raycast(_playerRayOrigin, (hitPoint - _playerRayOrigin).normalized, 100, LayerMask.NameToLayer("Platforms"));
+                hit = Physics2D.Raycast(_playerRayOrigin, (hitPoint - _playerRayOrigin).normalized, 100, RaycastMask);
                 if (hit.collider != null)
                 {
                     TerrainGen.SetBlock(hit, new Block(), true);
