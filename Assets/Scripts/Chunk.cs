@@ -68,6 +68,14 @@ public class Chunk : MonoBehaviour
         }
     }
 
+    public void SetBlocksUnmodified()
+    {
+        foreach (Block block in blocks)
+        {
+            block.changed = false;
+        }
+    }
+
     public static bool InRange(int index)
     {
         if (index < 0 || index >= chunkSize)

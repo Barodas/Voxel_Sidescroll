@@ -29,6 +29,10 @@ public static class Serialization
 
     public static void SaveChunk(Chunk chunk)
     {
+        Save save = new Save(chunk); 
+        if (save.blocks.Count == 0)  
+            return;                  
+
         string saveFile = SaveLocation(chunk.world.worldName);
         saveFile += FileName(chunk.pos);
 
@@ -50,7 +54,12 @@ public static class Serialization
         IFormatter formatter = new BinaryFormatter();
         FileStream stream = new FileStream(saveFile, FileMode.Open);
 
-        chunk.blocks = (Block[,,])formatter.Deserialize(stream);
+        Save save = (Save)formatter.Deserialize(stream);
+        foreach (var blocks in save.blocks)
+        {
+            chunk.blocks[blocks.Key.x, blocks.Key.y, 0] = blocks.Value.Foreground;
+            chunk.blocks[blocks.Key.x, blocks.Key.y, 1] = blocks.Value.Background;
+        }
         stream.Close();
         return true;
     }
