@@ -21,23 +21,6 @@ public class Chunk : MonoBehaviour
     {
         _filter = gameObject.GetComponent<MeshFilter>();
         _col = gameObject.GetComponent<PolygonCollider2D>();
-
-        // Example Chunk Generation
-        //_blocks = new Block[chunkSize, chunkSize, chunkDepth];
-        //for (int x = 0; x < chunkSize; x++)
-        //{
-        //    for (int y = 0; y < chunkSize; y++)
-        //    {
-        //        for (int z = 0; z < chunkDepth; z++)
-        //        {
-        //            _blocks[x, y, z] = new BlockAir();
-        //        }
-        //    }
-        //}
-        //_blocks[3, 5, 0] = new Block();
-        //_blocks[4, 5, 0] = new BlockGrass();
-        //UpdateChunk();
-        // End Example Chunk Generation
     }
 
     void Update()
@@ -107,34 +90,6 @@ public class Chunk : MonoBehaviour
         _filter.mesh.triangles = meshData.triangles.ToArray();
         _filter.mesh.uv = meshData.uv.ToArray();
         _filter.mesh.RecalculateNormals();
-
-        // For each point that has a matching point in a sublist, we add that sublists other point to this list and check again.
-        //List<List<Vector2>> consolidatedColliders = new List<List<Vector2>>();
-        //consolidatedColliders.Add(meshData.colVertices[0]);
-        //meshData.colVertices.RemoveAt(0);
-        //int currentList = 0;
-
-        //while (meshData.colVertices.Count > 0)
-        //{
-        //    for(int i = 0; i < meshData.colVertices.Count; i++)
-        //    {
-        //        if(meshData.colVertices[i][0] == consolidatedColliders[currentList][consolidatedColliders[currentList].Count - 1])
-        //        {
-        //            consolidatedColliders[currentList].Add(meshData.colVertices[i][1]);
-        //            meshData.colVertices.RemoveAt(i);
-        //            break;
-        //        }
-        //    }
-        //    currentList++;
-        //    consolidatedColliders.Add(meshData.colVertices[0]);
-        //    meshData.colVertices.RemoveAt(0);
-        //}
-
-        //_col.pathCount = consolidatedColliders.Count;
-        //for(int i = 0; i < consolidatedColliders.Count; i++)
-        //{
-        //    _col.SetPath(i, consolidatedColliders[i].ToArray());
-        //}
 
         Build2dCollider(meshData);
     }
