@@ -1,13 +1,14 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 [RequireComponent(typeof(MeshFilter))]
 [RequireComponent(typeof(MeshRenderer))]
-[RequireComponent(typeof(MeshCollider))]
+[RequireComponent(typeof(PolygonCollider2D))]
 public class Chunk : MonoBehaviour
 {
     private MeshFilter _filter;
-    private MeshCollider _col;
+    private PolygonCollider2D _col;
 
     public Block[,,] blocks = new Block[chunkSize, chunkSize, chunkDepth]; // X, Y, Foreground/Background
     public World world;
@@ -19,24 +20,7 @@ public class Chunk : MonoBehaviour
     private void Start()
     {
         _filter = gameObject.GetComponent<MeshFilter>();
-        _col = gameObject.GetComponent<MeshCollider>();
-
-        // Example Chunk Generation
-        //_blocks = new Block[chunkSize, chunkSize, chunkDepth];
-        //for (int x = 0; x < chunkSize; x++)
-        //{
-        //    for (int y = 0; y < chunkSize; y++)
-        //    {
-        //        for (int z = 0; z < chunkDepth; z++)
-        //        {
-        //            _blocks[x, y, z] = new BlockAir();
-        //        }
-        //    }
-        //}
-        //_blocks[3, 5, 0] = new Block();
-        //_blocks[4, 5, 0] = new BlockGrass();
-        //UpdateChunk();
-        // End Example Chunk Generation
+        _col = gameObject.GetComponent<PolygonCollider2D>();
     }
 
     void Update()
@@ -64,6 +48,14 @@ public class Chunk : MonoBehaviour
         else
         {
             world.SetBlock(pos.x + x, pos.y + y, z, block);
+        }
+    }
+
+    public void SetBlocksUnmodified()
+    {
+        foreach (Block block in blocks)
+        {
+            block.changed = false;
         }
     }
 
@@ -99,12 +91,91 @@ public class Chunk : MonoBehaviour
         _filter.mesh.uv = meshData.uv.ToArray();
         _filter.mesh.RecalculateNormals();
 
-        _col.sharedMesh = null;
-        Mesh mesh = new Mesh();
-        mesh.vertices = meshData.colVertices.ToArray();
-        mesh.triangles = meshData.colTriangles.ToArray();
-        mesh.RecalculateNormals();
+        Build2dCollider(meshData);
+    }
 
-        _col.sharedMesh = mesh;
+    private void Build2dCollider(MeshData meshData)
+    {
+        // Get triangles and vertices from mesh
+        int[] triangles = meshData.tris2d.ToArray();
+        Vector2[] vertices = meshData.verts2d.ToArray();
+
+        // Get just the outer edges from the mesh's triangles (ignore or remove any shared edges)
+        Dictionary<string, KeyValuePair<int, int>> edges = new Dictionary<string, KeyValuePair<int, int>>();
+        for (int i = 0; i < triangles.Length; i += 3)
+        {
+            for (int e = 0; e < 3; e++)
+            {
+                int vert1 = triangles[i + e];
+                int vert2 = triangles[i + e + 1 > i + 2 ? i : i + e + 1];
+                string edge = Mathf.Min(vert1, vert2) + ":" + Mathf.Max(vert1, vert2);
+                if (edges.ContainsKey(edge))
+                {
+                    edges.Remove(edge);
+                }
+                else
+                {
+                    edges.Add(edge, new KeyValuePair<int, int>(vert1, vert2));
+                }
+            }
+        }
+
+        // Create edge lookup (Key is first vertex, Value is second vertex, of each edge)
+        Dictionary<int, int> lookup = new Dictionary<int, int>();
+        foreach (KeyValuePair<int, int> edge in edges.Values)
+        {
+            if (lookup.ContainsKey(edge.Key) == false)
+            {
+                lookup.Add(edge.Key, edge.Value);
+            }
+        }
+
+        _col.pathCount = 0;
+
+        // Loop through edge vertices in order
+        int startVert = 0;
+        int nextVert = startVert;
+        int highestVert = startVert;
+        List<Vector2> colliderPath = new List<Vector2>();
+        while (true)
+        {
+
+            // Add vertex to collider path
+            colliderPath.Add(vertices[nextVert]);
+
+            // Get next vertex
+            nextVert = lookup[nextVert];
+
+            // Store highest vertex (to know what shape to move to next)
+            if (nextVert > highestVert)
+            {
+                highestVert = nextVert;
+            }
+
+            // Shape complete
+            if (nextVert == startVert)
+            {
+
+                // Add path to polygon collider
+                _col.pathCount++;
+                _col.SetPath(_col.pathCount - 1, colliderPath.ToArray());
+                colliderPath.Clear();
+
+                // Go to next shape if one exists
+                if (lookup.ContainsKey(highestVert + 1))
+                {
+
+                    // Set starting and next vertices
+                    startVert = highestVert + 1;
+                    nextVert = startVert;
+
+                    // Continue to next loop
+                    continue;
+                }
+
+                // No more verts
+                break;
+            }
+        }
     }
 }

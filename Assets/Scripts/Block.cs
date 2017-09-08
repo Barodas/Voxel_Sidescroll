@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System;
+using System.Collections.Generic;
 
 public enum Direction
 {
@@ -22,6 +23,8 @@ public struct Tile
 public class Block
 {
     const float tileSize = 0.25f;
+
+    public bool changed = true;
 
     public Block()
     {
@@ -111,6 +114,7 @@ public class Block
         meshData.AddVertex(new Vector3(x - 0.5f, y + 0.5f, z - 0.5f));
         meshData.uv.AddRange(FaceUVs(Direction.up));
         meshData.AddQuadTriangles();
+        meshData.AddColliderVertices(new List<Vector2> { new Vector2(x - 0.5f, y + 0.5f), new Vector2(x + 0.5f, y + 0.5f)});
         return meshData;
     }
 
@@ -122,6 +126,7 @@ public class Block
         meshData.AddVertex(new Vector3(x - 0.5f, y - 0.5f, z + 0.5f));
         meshData.uv.AddRange(FaceUVs(Direction.down));
         meshData.AddQuadTriangles();
+        meshData.AddColliderVertices(new List<Vector2> { new Vector2(x - 0.5f, y - 0.5f), new Vector2(x + 0.5f, y - 0.5f) });
         return meshData;
     }
 
@@ -144,6 +149,7 @@ public class Block
         meshData.AddVertex(new Vector3(x + 0.5f, y - 0.5f, z + 0.5f));
         meshData.uv.AddRange(FaceUVs(Direction.east));
         meshData.AddQuadTriangles();
+        meshData.AddColliderVertices(new List<Vector2> { new Vector2(x + 0.5f, y - 0.5f), new Vector2(x + 0.5f, y + 0.5f) });
         return meshData;
     }
 
@@ -155,6 +161,16 @@ public class Block
         meshData.AddVertex(new Vector3(x + 0.5f, y - 0.5f, z - 0.5f));
         meshData.uv.AddRange(FaceUVs(Direction.south));
         meshData.AddQuadTriangles();
+        
+        if(z == 0) // Only create colliders for foreground layer
+        {
+            meshData.AddVertex2d(new Vector2(x - 0.5f, y - 0.5f));
+            meshData.AddVertex2d(new Vector2(x - 0.5f, y + 0.5f));
+            meshData.AddVertex2d(new Vector2(x + 0.5f, y + 0.5f));
+            meshData.AddVertex2d(new Vector2(x + 0.5f, y - 0.5f));
+            meshData.AddQuadTriangles2d();
+        }
+        
         return meshData;
     }
 
@@ -166,6 +182,7 @@ public class Block
         meshData.AddVertex(new Vector3(x - 0.5f, y - 0.5f, z - 0.5f));
         meshData.uv.AddRange(FaceUVs(Direction.west));
         meshData.AddQuadTriangles();
+        meshData.AddColliderVertices(new List<Vector2> { new Vector2(x - 0.5f, y - 0.5f), new Vector2(x - 0.5f, y + 0.5f) });
         return meshData;
     }
 }

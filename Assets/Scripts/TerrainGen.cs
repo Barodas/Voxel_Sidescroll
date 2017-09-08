@@ -10,18 +10,17 @@ public static class TerrainGen
         return blockPos;
     }
 
-    public static WorldPos GetBlockPos(RaycastHit hit, bool adjacent = false)
+    public static WorldPos GetBlockPos(RaycastHit2D hit, bool adjacent = false)
     {
         Vector3 pos = new Vector3(
             MoveWithinBlock(hit.point.x, hit.normal.x, adjacent),
-            MoveWithinBlock(hit.point.y, hit.normal.y, adjacent),
-            MoveWithinBlock(hit.point.z, hit.normal.z, adjacent)
+            MoveWithinBlock(hit.point.y, hit.normal.y, adjacent)
             );
 
         return GetBlockPos(pos);
     }
 
-    public static Block GetBlock(RaycastHit hit, bool adjacent = false)
+    public static Block GetBlock(RaycastHit2D hit, bool adjacent = false)
     {
         Chunk chunk = hit.collider.GetComponent<Chunk>();
         if (chunk == null)
@@ -34,7 +33,7 @@ public static class TerrainGen
         return block;
     }
 
-    public static bool SetBlock(RaycastHit hit, Block block, bool adjacent = false)
+    public static bool SetBlock(RaycastHit2D hit, Block block, bool adjacent = false)
     {
         Chunk chunk = hit.collider.GetComponent<Chunk>();
         if (chunk == null)
