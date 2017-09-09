@@ -33,7 +33,7 @@ public class PlayerController : MonoBehaviour
                 Debug.Log(hit.collider.name);
                 if (hit.collider != null)
                 {
-                    TerrainGen.SetBlock(hit, new BlockAir());
+                    TerrainUtils.SetBlock(hit, new BlockAir());
                 }
             }
 
@@ -42,7 +42,7 @@ public class PlayerController : MonoBehaviour
                 hit = Physics2D.Raycast(_playerRayOrigin, (hitPoint - _playerRayOrigin).normalized, 100, RaycastMask);
                 if (hit.collider != null)
                 {
-                    TerrainGen.SetBlock(hit, new Block(), true);
+                    TerrainUtils.SetBlock(hit, new Block(), true);
                 }
             }
             Debug.DrawRay(_playerRayOrigin, (hitPoint - _playerRayOrigin).normalized, Color.red);
@@ -54,7 +54,7 @@ public class PlayerController : MonoBehaviour
     public List<WorldPos> OccupiedBlocks()
     {
         List<WorldPos> pos = new List<WorldPos>();
-        pos.Add(TerrainGen.GetBlockPos(_playerRayOrigin));
+        pos.Add(TerrainUtils.GetBlockPos(_playerRayOrigin));
         pos.Add(new WorldPos(pos[0].x, pos[0].y - 1));
         return pos;
     }

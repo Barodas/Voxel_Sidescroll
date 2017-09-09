@@ -96,6 +96,11 @@ public class Chunk : MonoBehaviour
 
     private void Build2dCollider(MeshData meshData)
     {
+        if(meshData.tris2d.Count <= 0)
+        {
+            return;
+        }
+
         // Get triangles and vertices from mesh
         int[] triangles = meshData.tris2d.ToArray();
         Vector2[] vertices = meshData.verts2d.ToArray();
@@ -139,6 +144,10 @@ public class Chunk : MonoBehaviour
         List<Vector2> colliderPath = new List<Vector2>();
         while (true)
         {
+            if(nextVert >= vertices.Length)
+            {
+                Debug.Log("aaaahhhhh");
+            }
 
             // Add vertex to collider path
             colliderPath.Add(vertices[nextVert]);

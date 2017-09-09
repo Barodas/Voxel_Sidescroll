@@ -16,9 +16,9 @@ public class World : MonoBehaviour
 
     void Start()
     {
-        for (int x = -2; x < 2; x++)
+        for (int x = -4; x < 4; x++)
         {
-            for (int y = -1; y < 1; y++)
+            for (int y = -1; y < 3; y++)
             {
                 CreateChunk(x * 16, y * 16);
             }
@@ -88,41 +88,18 @@ public class World : MonoBehaviour
 
     public void CreateChunk(int x, int y)
     {
-        //the coordinates of this chunk in the world
         WorldPos worldPos = new WorldPos(x, y);
-
-        //Instantiate the chunk at the coordinates using the chunk prefab
-        GameObject newChunkObject = Instantiate(chunkPrefab, new Vector3(worldPos.x, worldPos.y), Quaternion.Euler(Vector3.zero)) as GameObject;
-
-        //Get the object's chunk component
+        GameObject newChunkObject = Instantiate(chunkPrefab, new Vector3(x, y), Quaternion.Euler(Vector3.zero)) as GameObject;
         Chunk newChunk = newChunkObject.GetComponent<Chunk>();
-
-        //Assign its values
         newChunk.pos = worldPos;
         newChunk.world = this;
 
-        //Add it to the chunks dictionary with the position as the key
         chunks.Add(worldPos, newChunk);
 
-        for (int xi = 0; xi < 16; xi++)
-        {
-            for (int yi = 0; yi < 16; yi++)
-            {
-                if (yi <= 7)
-                {
-                    SetBlock(x + xi, y + yi, 0, new BlockGrass());
-                    SetBlock(x + xi, y + yi, 1, new BlockGrass());
-                }
-                else
-                {
-                    SetBlock(x + xi, y + yi, 0, new BlockAir());
-                    SetBlock(x + xi, y + yi, 1, new BlockAir());
-                }
-            }
-        }
-
+        var terrainGen = new TerrainGen();
+        newChunk = terrainGen.ChunkGen(newChunk);
         newChunk.SetBlocksUnmodified();
-        Serialization.Load(newChunk);
+        bool loaded = Serialization.Load(newChunk);
     }
 
     public void DestroyChunk(int x, int y)
